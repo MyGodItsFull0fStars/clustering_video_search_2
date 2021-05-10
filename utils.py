@@ -20,7 +20,7 @@ def get_2D_histogram(image):
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     channels = [0, 1]
     bins = [180, 256]
-    hs_range = [0, 180, 0, 25]
+    hs_range = [0, 180, 0, 256]
     histogram = cv2.calcHist([hsv_image], channels, None, bins, hs_range)
 
     return histogram
@@ -31,10 +31,14 @@ def plot_2D_histogram(histogram):
     plt.show()
 
 
+def get_image_from_file_name(file_name: str):
+    return cv2.imread(file_name)
+
+
 def get_keyframe_image_list(high_keyframes: bool) -> List:
     file_names: List[str] = get_key_frame_file_names(high_keyframes)
 
-    return [cv2.imread(img_name) for img_name in file_names]
+    return [get_image_from_file_name(img_name) for img_name in file_names]
 
 
 def get_key_frame_file_names(high_keyframes: bool) -> List[str]:
