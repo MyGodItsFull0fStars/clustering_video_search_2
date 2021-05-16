@@ -36,6 +36,7 @@ class ClusterSize(Enum):
 
 @unique  # enum values have to be unique
 class ClusteringType(Enum):
+    BF_Clustering: str = 'brute-force-2d-histogram-clustering'
     K_1024_POINTS: str = 'k-1024-points'
     K_512_POINTS: str = 'k-512-points'
     K_128_POINTS: str = 'k-128-points'
