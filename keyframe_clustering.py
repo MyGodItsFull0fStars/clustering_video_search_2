@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 
 from decorators import time_decorator
 from enum import Enum, unique
@@ -22,6 +22,16 @@ def add_to_cluster_list(lock, idx, image, cluster_list):
     cluster_list.append(temp_cluster)
     lock.release()
     return temp_cluster
+
+
+@unique
+class ClusterSize(Enum):
+    C_150: str = 'cluster-size-150'
+    C_50: str = 'cluster-size-50'
+    C_30: str = 'cluster-size-30'
+    C_10: str = 'cluster-size-10'
+    C_5: str = 'cluster-size-5'
+    C_1: str = 'cluster-size-1'
 
 
 @unique  # enum values have to be unique
@@ -91,11 +101,7 @@ class KeyFrameClustering:
     def __init__(self, high_keyframes: bool = False, search_type: SearchType = SearchType.BRUTE_FORCE):
         self._keyframes: list = utils.get_keyframe_image_list(high_keyframes)
         self.search_type: SearchType = search_type
-        self.cluster_list_150: List[Cluster] = []
-        self.cluster_list_50: List[Cluster] = []
-        self.cluster_list_30: List[Cluster] = []
-        self.cluster_list_10: List[Cluster] = []
-        self.cluster_list_5: List[Cluster] = []
+        self.cluster_dict: Dict = {}
 
     @time_decorator
     def hierarchical_clustering(self, clustering_type: ClusteringType = ClusteringType.K_1024_POINTS):
@@ -113,7 +119,8 @@ class KeyFrameClustering:
 
         cluster_list_length: int = len(cluster_list)
 
-        if cluster_list_length <= 1:
+        if cluster_list_length == 1:
+            self.cluster_dict[ClusterSize.C_1] = deepcopy(cluster_list)
             return cluster_list
 
         if cluster_list_length in [5, 10, 30, 50, 150]:
@@ -127,6 +134,12 @@ class KeyFrameClustering:
         del cluster_list[right_best]
 
         return self.merge_clusters(cluster_list, clustering_type)
+
+    def get_cluster_list_with_size(self, cluster_size: ClusterSize = ClusterSize.C_1) -> List[Cluster]:
+        if not isinstance(cluster_size, ClusterSize):
+            print(f'Given parameter {cluster_size} is not a defined cluster size')
+            return []
+        return self.cluster_dict[cluster_size]
 
     def _find_best_clusters_brute_force(self, cluster_list) -> Tuple[int, int, float]:
         min_distance: float = np.inf
@@ -171,15 +184,15 @@ class KeyFrameClustering:
     def __add_to_cluster_list(self, cluster_list):
         cluster_list_length: int = len(cluster_list)
         if cluster_list_length == 150:
-            self.cluster_list_150 = deepcopy(cluster_list)
+            self.cluster_dict[ClusterSize.C_150] = deepcopy(cluster_list)
         elif cluster_list_length == 50:
-            self.cluster_list_50 = deepcopy(cluster_list)
+            self.cluster_dict[ClusterSize.C_50] = deepcopy(cluster_list)
         elif cluster_list_length == 30:
-            self.cluster_list_30 = deepcopy(cluster_list)
+            self.cluster_dict[ClusterSize.C_30] = deepcopy(cluster_list)
         elif cluster_list_length == 10:
-            self.cluster_list_10 = deepcopy(cluster_list)
+            self.cluster_dict[ClusterSize.C_10] = deepcopy(cluster_list)
         elif cluster_list_length == 5:
-            self.cluster_list_5 = deepcopy(cluster_list)
+            self.cluster_dict[ClusterSize.C_5] = deepcopy(cluster_list)
 
     def __get_euclidian_distance(self, left_position: Tuple[int, int], right_position: Tuple[int, int]) -> float:
         left_x, left_y = left_position[0], left_position[1]

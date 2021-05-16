@@ -1,6 +1,6 @@
 from typing import List
 
-from keyframe_clustering import KeyFrameClustering, Cluster, ClusteringType
+from keyframe_clustering import KeyFrameClustering, Cluster, ClusteringType, ClusterSize
 from html_generator import HTMLGenerator
 
 import utils
@@ -10,9 +10,13 @@ def create_html(clustering: ClusteringType):
     global kfc
     global generator
     global high_keyframes
-    cluster_list: List[Cluster] = kfc.hierarchical_clustering(clustering)
-    all_points_clusters = [kfc.cluster_list_150, kfc.cluster_list_50, kfc.cluster_list_30, kfc.cluster_list_10,
-                           kfc.cluster_list_5, cluster_list]
+    kfc.hierarchical_clustering(clustering)
+    all_points_clusters = [kfc.get_cluster_list_with_size(ClusterSize.C_150),
+                           kfc.get_cluster_list_with_size(ClusterSize.C_50),
+                           kfc.get_cluster_list_with_size(ClusterSize.C_30),
+                           kfc.get_cluster_list_with_size(ClusterSize.C_10),
+                           kfc.get_cluster_list_with_size(ClusterSize.C_5),
+                           kfc.get_cluster_list_with_size(ClusterSize.C_1)]
     generator = HTMLGenerator(high_keyframes)
 
     for cluster in all_points_clusters:
@@ -26,6 +30,6 @@ if __name__ == '__main__':
     generator = HTMLGenerator(high_keyframes)
 
     clustering_type_list = list(map(ClusteringType, ClusteringType))
-    
+
     for clustering_type in clustering_type_list:
         create_html(clustering_type)
